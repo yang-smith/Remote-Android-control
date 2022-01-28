@@ -1,10 +1,13 @@
 use std::alloc::handle_alloc_error;
-use std::io::{Read, Write};
+use std::io::{Read, Write, BufRead};
 use std::net::{TcpListener, TcpStream};
 use std::fs;
+use std::panic::Location;
 use std::thread;
+use std::time::Duration;
 use web_server::net::net_threadpool::ThreadPool;
-
+use web_server::command::command::shell;
+use std::string;
 
 fn main() {
 
@@ -23,7 +26,9 @@ fn main() {
 fn handle_connection(mut stream: TcpStream){
     let mut buffer = [0; 1024];
     stream.read(&mut buffer).unwrap();
+    let out = split(String::from_utf8_lossy(&buffer[..]).to_string(), stream);
 
+    return;
     let get = b"GET / HTTP/1.1\r\n";
 
     let (status_line, filename) = if buffer.starts_with(get) {
@@ -42,3 +47,25 @@ fn handle_connection(mut stream: TcpStream){
     stream.flush().unwrap();
 }
 
+fn split(str_get: String, mut stream: TcpStream) -> String {
+    let take: Vec<&str> = str_get.split(" HTTP/1.1").collect();
+    let head = take[0].to_string();
+    let take: Vec<&str> = head.split("/").collect();
+    let cmd = take[1];
+    println!("{}",cmd);
+    let out = shell(cmd.to_string());
+    println!("{}", out);
+
+    let content_start = fs::read_to_string("start.html").unwrap();
+    let content_end = fs::read_to_string("end.html").unwrap();
+    let contents = format!("{}{}{}",content_start, out, content_end);
+    let response = format!(
+        "HTTP/1.1 200 OK\r\nContent-Length:{}\r\n\r\n{}",
+        contents.len(),
+        contents
+    );
+    stream.write(response.as_bytes()).unwrap();
+    stream.flush().unwrap();
+
+    return cmd.to_string();
+}
