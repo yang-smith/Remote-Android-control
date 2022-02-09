@@ -32,9 +32,9 @@ fn handle_connection(mut stream: TcpStream){
     let get = b"GET / HTTP/1.1\r\n";
 
     let (status_line, filename) = if buffer.starts_with(get) {
-        ("HTTP/1.1 200 OK", "hello.html")
+        ("HTTP/1.1 200 OK", "./html/hello.html")
     } else {
-        ("HTTP/1.1 404 NOT FOUND", "404.html")
+        ("HTTP/1.1 404 NOT FOUND", "./html/404.html")
     };
     let contents = fs::read_to_string(filename).unwrap();
     let response = format!(
@@ -58,8 +58,8 @@ fn split(str_get: String, mut stream: TcpStream) -> String {
     let out = shell(cmd.to_string());
     println!("{}", out);
 
-    let content_start = fs::read_to_string("start.html").unwrap();
-    let content_end = fs::read_to_string("end.html").unwrap();
+    let content_start = fs::read_to_string("./html/start.html").unwrap();
+    let content_end = fs::read_to_string("./html/end.html").unwrap();
     let contents = format!("{}{}{}",content_start, out, content_end);
     let response = format!(
         "HTTP/1.1 200 OK\r\nContent-Length:{}\r\n\r\n{}",
