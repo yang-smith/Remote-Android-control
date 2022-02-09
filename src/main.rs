@@ -56,6 +56,7 @@ fn split(str_get: String, mut stream: TcpStream) -> String {
     let cmd = head.replace("/", " ");
     println!("{}",cmd);
     let out = shell(cmd.to_string());
+    let out = out.replace("\n", "<br/>");
     println!("{}", out);
 
     let content_start = fs::read_to_string("./html/start.html").unwrap();
