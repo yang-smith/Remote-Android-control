@@ -57,7 +57,7 @@ fn split(str_get: String, mut stream: TcpStream) -> String {
     let cmd = head.replace("/", " ");
     println!("{}",cmd);
     let out = shell(cmd.to_string());
-    let mut out = json::stringify(out.split("\n").collect::<Vec<&str>>());
+    let out = json::stringify(out.split("\n").collect::<Vec<&str>>());
     println!("{}", out);
 
     let content_start = fs::read_to_string("./html/start.html").unwrap();
