@@ -14,7 +14,7 @@ fn main() {
     let listener = TcpListener::bind("0.0.0.0:80").unwrap();
     let pool = ThreadPool::new(4);
 
-    for stream in listener.incoming().take(10) {
+    for stream in listener.incoming().take(1000) {
         let stream = stream.unwrap();
         pool.execute(|| {
             handle_connection(stream);
@@ -47,6 +47,7 @@ fn handle_connection(mut stream: TcpStream){
     stream.flush().unwrap();
 }
 
+extern crate json;
 fn split(str_get: String, mut stream: TcpStream) -> String {
     let take: Vec<&str> = str_get.split(" HTTP/1.1").collect();
     let head = take[0].to_string();
@@ -56,14 +57,14 @@ fn split(str_get: String, mut stream: TcpStream) -> String {
     let cmd = head.replace("/", " ");
     println!("{}",cmd);
     let out = shell(cmd.to_string());
-    let out = out.replace("\n", "<br/>");
+    let out = json::stringify(out.split("\n").collect::<Vec<&str>>());
     println!("{}", out);
 
     let content_start = fs::read_to_string("./html/start.html").unwrap();
     let content_end = fs::read_to_string("./html/end.html").unwrap();
-    let contents = format!("{}{}{}",content_start, out, content_end);
+    let contents = format!("{}", out);
     let response = format!(
-        "HTTP/1.1 200 OK\r\nContent-Length:{}\r\n\r\n{}",
+        "HTTP/1.1 200 OK\r\nContent-Length:{}\r\nAccess-Control-Allow-Credentials: true\r\nAccess-Control-Allow-Headers: Origin,No-Cache, X-Requested-With, If-Modified-Since, Pragma, Last-Modified, Cache-Control, Expires, Content-Type, X-E4M-With, token\r\nAccess-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json;charset=utf-8\r\n\r\n{}",
         contents.len(),
         contents
     );
